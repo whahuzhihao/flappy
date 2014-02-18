@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HuGao's Flappy Bird</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" /> 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> 
+  <style type="text/css"> 
+	body { margin: 0; padding: 0; background: #000;} 
+	canvas { display: block; margin: 0 auto; background: #fff; } 
+	img {display:none;}
+	</style>
+<script type="text/javascript" src="js/audio-fx.min.js"></script>
+<script type="text/javascript" src="js/Base.js"></script>
+<script type="text/javascript" src="js/Vector.js"></script>
+<script type="text/javascript">
+	sound_swoosh = AudioFX('img/swoosh', { formats: ['ogg', 'mp3'],volume:1},function(){ifLoaded=3;loadStep++;});
+	sound_die = AudioFX('img/die', { formats: ['ogg', 'mp3'],volume:1},function(){ifLoaded=2;loadStep++;});
+	sound_point = AudioFX('img/point', { formats: ['ogg', 'mp3'],volume:1},function(){ifLoaded=2;loadStep++;});
+	sound_hit = AudioFX('img/hit', { formats: ['ogg', 'mp3'],volume:1},function(){ifLoaded=2;loadStep++;});
+	sound_flap_wing = AudioFX('img/flap_wing', { formats: ['ogg', 'mp3'] ,volume:1,pool: 5},function(){ifLoaded=2;loadStep++;});
+	
+	function init()
+	{ 	
+		Canvas = document.getElementById('canvas');
+		Context = Canvas.getContext('2d');
+		GroundImg = document.getElementById('ground');
+		BirdImg = document.getElementById('bird');
+		TubeImg1 = document.getElementById('tube_down');
+		TubeImg2 = document.getElementById('tube_up');
+		BgImg= document.getElementById('bg');
+
+		//iphone的safari有时候用localStorage会报错 这时候就用cookie存
+		ifSupportStorage = true;
+		try{
+			storage = window.localStorage;
+			stroage.setItem('testIfSupport',true);
+		}catch(e){
+			ifSupportStorage = false;
+		}
+		
+		Sound ={
+			playFlap:function(){sound_flap_wing.play();},
+			playHit:function(){sound_hit.play();},
+			playPoint:function(){sound_point.play();},
+			playDie:function(){sound_die.play();},
+			playSwoosh:function(){sound_swoosh.play();},
+			setVolume: function(name,v){
+				switch(name)
+				{
+					case 'point':
+						sound_point.audio.volume = v;
+						break;
+					case 'die':
+						sound_die.audio.volume = v;
+						break;
+					case 'hit':
+						sound_hit.audio.volume = v;
+						break;				
+				}
+			}
+		}
+		
+		BG = new Sprite(BgImg,0,0,0,0,false,0,BG_Y,0);
+		GROUND = new Ground(GroundImg,0,0,0,0,false,0,GROUND_Y,0);
+		BIRD = new Bird(BirdImg,BIRD_WIDTH,0,BIRD_WIDTH,BIRD_HEIGHT,true,BIRD_X,BIRD_POSITION,0);
+
+		game = new Game();
+		resize();
+		game.start();
+	}
+	function resize()
+	{	
+		var windowWidth = window.innerWidth;
+		var windowHeight = window.innerHeight;
+		var canvas = document.getElementById('canvas');
+		var canvasWidth = canvas.width;
+		var canvasHeight = canvas.height;
+		var ratio = canvasHeight/canvasWidth;
+		if(windowWidth*ratio>=windowHeight)//把竖着的填满
+		{
+			canvas.style.height = windowHeight+'px';
+			canvas.style.width = windowHeight/ratio+'px';
+		}else{//把横着的填满	
+			canvas.style.width = windowWidth+'px';
+			canvas.style.height = windowWidth*ratio+'px';
+		}
+	}
+
+	window.addEventListener('resize', resize, false); 
+	window.addEventListener('load', init, false); 
+
+	window.addEventListener('touchmove',function(e){
+		e.stopPropagation();
+		e.preventDefault();
+	});
+	window.addEventListener('touchstart',function(e){
+		touch();
+	});
+	window.addEventListener('click',function(e){
+		touch();
+	});
+	
+	loadStep = 0;
+	ifLoaded = 0;//0一个都没载入 1载入中 2载入完1个可以载入下一个了 3全部载入完毕可以开始了
+	function ifIOS()
+	{
+		var u = navigator.userAgent, app = navigator.appVersion;
+		if( u.indexOf('iPhone') > -1 || u.indexOf('iPad')>-1)
+		return true;
+		return false;
+	}
+	isIOS = ifIOS();
+	function touch()
+	{
+		if(isIOS && ifLoaded!=3)
+		{
+			if(ifLoaded == 1)
+			{				
+				return;
+			}
+			if(ifLoaded == 2 || ifLoaded == 0)
+			{
+				switch(loadStep)
+				{
+					case 0:
+						ifLoaded = 1;
+						sound_flap_wing.audio[0].load();
+						break;
+					case 1:
+						ifLoaded = 1;
+						sound_hit.audio.load();
+						break;
+					case 2:
+						ifLoaded = 1;
+						sound_point.audio.load();
+						break;
+					case 3:
+						ifLoaded = 1;
+						sound_die.audio.load();
+						break;
+					case 4:
+						ifLoaded = 1;
+						sound_swoosh.audio.load();
+						break;													
+				}
+				return;
+			}		
+		}
+		switch(game.status)
+		{
+			case WELCOME:
+				Sound.playFlap();
+				game.birdSprite.velocity.y= -FLAP;			
+				game.status = PLAYING;
+				break;
+			case PLAYING:
+				Sound.playFlap();
+				game.birdSprite.velocity.y = -FLAP;
+				break;
+			case DYING:
+				break;
+			case END:
+				Sound.playSwoosh();
+				init();
+				break;
+		}
+	}
+</script>
+
+</head>
+<body>
+<img id="ground" src="img/ground.png"> </img>
+<img id="bg" src="img/bg.png"> </img>
+<img id="bird" src="img/bird.png"> </img>
+<img id="tube_down" src="img/tube_down.png"> </img>
+<img id="tube_up" src="img/tube_up.png"> </img>
+<canvas id="canvas" width="288" height="384"></canvas>
+<script type="text/javascript" src="js/Sprite.js"></script>
+<script type="text/javascript" src="js/Main.js"></script>
+</body>
+</html>
