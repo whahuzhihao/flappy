@@ -52,23 +52,6 @@ Game.prototype.loop = function(intervalId)
 	Context.textAlign = 'center';
 	if(this.status == WELCOME)
 	{
-		if(isIOS && loadStep<5)
-		{
-			Context.font = 'bold 10px Arial '; 
-			Context.fillText ("IOS Device Need Touching 5 Times to Load Music",CANVAS_WIDTH/2,CANVAS_HEIGHT/4+55);
-			if(ifLoaded!=3)
-			{
-				if(ifLoaded == 1)//载入中 请稍等
-				{
-					Context.fillText ("LOADING "+getLoadStep(loadStep)+" PLEASE WAIT",CANVAS_WIDTH/2,CANVAS_HEIGHT/4+80);
-				}else{//载入完了 可以载入新的了
-					Context.fillText ("STEP "+(loadStep+1)+" PRESS TO LOAD "+getLoadStep(loadStep),CANVAS_WIDTH/2,CANVAS_HEIGHT/4+80);
-				}				
-			}else{
-				Context.fillText ("COMPLETE!",CANVAS_WIDTH/2,CANVAS_HEIGHT/4+80);			
-			}
-			
-		}
 		Context.font = 'bold 25px Arial '; 
 		Context.fillText ("HuGao's",CANVAS_WIDTH/2,CANVAS_HEIGHT/4-15);
 		Context.strokeText ("HuGao's",CANVAS_WIDTH/2,CANVAS_HEIGHT/4-15);
@@ -92,13 +75,16 @@ Game.prototype.loop = function(intervalId)
 			if(storage.getItem('high_score')==null||storage.getItem('high_score')<=this.score)
 			{
 				storage.removeItem('high_score');
-				storage.setItem('high_score',this.score);
-			}
+				storage.setItem('high_score',this.score);				
+			}			
 		}else{
 			if(getCookie('high_score')=="" || getCookie("high_score")<=this.score)
 			//不支持 localstorage 我拿cookie给你存一年
-			setCookie('high_score',this.score,365);
+			{
+				setCookie('high_score',this.score,365);
+			}			
 		}
+		shareTitle = "我在hugao的山寨flappy bird中得了"+this.score+"分，快来挑战我吧！";
 
 		Context.save();
 		Context.fillStyle    = '#fff';
