@@ -3,8 +3,7 @@ flappy
 
 flappy bird with simple HTML5
 
-deployed on Baidu BAE
-Demo: http://whahuzhihao.duapp.com/flappy
+demo:[地址](http://www.bewithyou.me/demo/flappy/index.html)
 
 use web audio api for apple devices
 use audio-fx for other devices
