@@ -12,10 +12,10 @@
 	img {display:none;}
 	</style>
 <script type="text/javascript" src="js/audio-fx.min.js"></script>
-<script type="text/javascript" src="js/Sound.js"></script>
-<script type="text/javascript" src="js/Base.js"></script>
-<script type="text/javascript" src="js/Vector.js"></script>
+<script type="text/javascript" src="js/flappy.js"></script>
 <script type="text/javascript">
+
+	//不用了
 	function ifIOS()
 	{
 		var u = navigator.userAgent, app = navigator.appVersion;
@@ -23,94 +23,113 @@
 		return true;
 		return false;
 	}
-	isIOS = ifIOS();
-	if(isIOS)
+	function ifAndroid()
 	{
-		var audioContextClass = (window.AudioContext ||
-			window.webkitAudioContext ||
-			window.mozAudioContext ||
-			window.oAudioContext ||
-			window.msAudioContext);
-		if (audioContextClass) {
-			// Web Audio API 可用.	
-			audioContext = new audioContextClass();
-		} else {
-			// Web Audio API 不可用
-			alert("对不起 您的移动设备不支持web audio");
-		}
-		bufferLoader = new BufferLoader(audioContext,
-									['img/die.mp3','img/point.mp3','img/hit.mp3','img/flap_wing.mp3','img/swoosh.mp3'],
-									finishedLoading);
-		bufferLoader.load();
-		bufferList = bufferLoader.bufferList;
-		function finishedLoading()
+		var u = navigator.userAgent, app = navigator.appVersion;
+		if( u.indexOf('Android') > -1 || u.indexOf('Linux')>-1)
+		return true;
+		return false;		
+	}
+	function initiate()
+	{
+		//判断是否支持web audio api PC和苹果设备支持 android不支持
+		audioContextClass = (window.AudioContext ||
+				window.webkitAudioContext ||
+				window.mozAudioContext ||
+				window.oAudioContext ||
+				window.msAudioContext);
+		if(audioContextClass)
 		{
-			//载入完毕 这里可以提供给页面输出
-		}
-
-		function playSound(type) {
-			var index=0;
-			switch(type)
+			function finishedLoading()
 			{
-				case "die":
-					index = 0;
-					break;
-				case "point":
-					index =1;
-					break;
-				case "hit":
-					index = 2;
-					break;
-				case "flap_wing":
-					index =3;
-					break;
-				case "swoosh":
-					index = 4;
-					break;					
+				//载入完毕 这里可以提供给页面输出
 			}
-			var source = audioContext.createBufferSource();
-			source.buffer = bufferList[index];
-			source.connect(audioContext.destination);
-			source.start(0);
-		}
-		Sound ={
-			playFlap:function(){playSound("flap_wing");},
-			playHit:function(){playSound("hit");},
-			playPoint:function(){playSound("point");},
-			playDie:function(){playSound("die");},
-			playSwoosh:function(){playSound("swoosh");},		
-		}
-	}else{
-		sound_swoosh = AudioFX('img/swoosh', { formats: ['ogg', 'mp3'],volume:1});
-		sound_die = AudioFX('img/die', { formats: ['ogg', 'mp3'],volume:1});
-		sound_point = AudioFX('img/point', { formats: ['ogg', 'mp3'],volume:1});
-		sound_hit = AudioFX('img/hit', { formats: ['ogg', 'mp3'],volume:1});
-		sound_flap_wing = AudioFX('img/flap_wing', { formats: ['ogg', 'mp3'] ,volume:1,pool: 5});
-		Sound ={
-			playFlap:function(){sound_flap_wing.play();},
-			playHit:function(){sound_hit.play();},
-			playPoint:function(){sound_point.play();},
-			playDie:function(){sound_die.play();},
-			playSwoosh:function(){sound_swoosh.play();},
-			setVolume: function(name,v){
-				switch(name)
+			audioContext = new audioContextClass();
+			bufferLoader = new BufferLoader(audioContext,
+										['img/die.mp3','img/point.mp3','img/hit.mp3','img/flap_wing.mp3','img/swoosh.mp3'],
+										finishedLoading);
+			bufferLoader.load();
+			bufferList = bufferLoader.bufferList;
+
+			function playSound(type) {
+				var index=0;
+				switch(type)
 				{
-					case 'point':
-						sound_point.audio.volume = v;
+					case "die":
+						index = 0;
 						break;
-					case 'die':
-						sound_die.audio.volume = v;
+					case "point":
+						index =1;
 						break;
-					case 'hit':
-						sound_hit.audio.volume = v;
-						break;				
+					case "hit":
+						index = 2;
+						break;
+					case "flap_wing":
+						index =3;
+						break;
+					case "swoosh":
+						index = 4;
+						break;					
 				}
+				var source = audioContext.createBufferSource();
+				source.buffer = bufferList[index];
+				source.connect(audioContext.destination);
+				source.start(0);
 			}
-		}
-	}	
+			Sound ={
+				playFlap:function(){playSound("flap_wing");},
+				playHit:function(){playSound("hit");},
+				playPoint:function(){playSound("point");},
+				playDie:function(){playSound("die");},
+				playSwoosh:function(){playSound("swoosh");},		
+			}
+		}else{
+			//如果是安卓设备 没办法用音效 因为只能播放一次 坑爹 又不支持webaudio 只能给个提示了
+			isAndroid = ifAndroid();
+			if(isAndroid)
+			{
+				Sound ={
+					playFlap:function(){return false;},
+					playHit:function(){return false;},
+					playPoint:function(){return false;},
+					playDie:function(){return false;},
+					playSwoosh:function(){return false;},					
+				}				
+				alert("对不起，您的设备暂不支持音效，只能用沉默模式啦！");
+			}else{
+				sound_swoosh = AudioFX('img/swoosh', { formats: ['ogg', 'mp3'],volume:1});
+				sound_die = AudioFX('img/die', { formats: ['ogg', 'mp3'],volume:1});
+				sound_point = AudioFX('img/point', { formats: ['ogg', 'mp3'],volume:1});
+				sound_hit = AudioFX('img/hit', { formats: ['ogg', 'mp3'],volume:1});
+				sound_flap_wing = AudioFX('img/flap_wing', { formats: ['ogg', 'mp3'] ,volume:1,pool: 5});
+				Sound ={
+					playFlap:function(){sound_flap_wing.play();},
+					playHit:function(){sound_hit.play();},
+					playPoint:function(){sound_point.play();},
+					playDie:function(){sound_die.play();},
+					playSwoosh:function(){sound_swoosh.play();},
+					setVolume: function(name,v){
+						switch(name)
+						{
+							case 'point':
+								sound_point.audio.volume = v;
+								break;
+							case 'die':
+								sound_die.audio.volume = v;
+								break;
+							case 'hit':
+								sound_hit.audio.volume = v;
+								break;				
+						}
+					}
+				}
+			}			
+		}			
+		init();
+	}
 	
 	function init()
-	{
+	{	
 		Canvas = document.getElementById('canvas');
 		Context = Canvas.getContext('2d');
 		GroundImg = document.getElementById('ground');
@@ -154,18 +173,32 @@
 	}
 
 	window.addEventListener('resize', resize, false); 
-	window.addEventListener('load', init, false); 
+	window.addEventListener('load', initiate, false); 
 
 	window.addEventListener('touchmove',function(e){
 		e.stopPropagation();
 		e.preventDefault();
 	});
-	window.addEventListener('touchstart',function(e){
-		touch();
-	});
-	window.addEventListener('click',function(e){
-		touch();
-	});
+	
+	if(document.hasOwnProperty("ontouchstart"))
+	{
+		window.addEventListener('touchstart',function(e){
+			touch();
+		});		
+	}else{
+		window.addEventListener('click',function(e){
+			touch();
+		});
+		window.addEventListener('keydown',function(e){
+			e = (e) ? e : window.event;
+			if (e.keyCode) 
+			{
+			   if(e.keyCode == 32){
+				 touch();
+			   }
+			}
+		})
+	}
 	
 	function touch()
 	{
@@ -190,12 +223,11 @@
 	}
 
     //微信分享用不了了 要申请appid 以后再弄吧
-    //   imgUrl = window.location.href.substr(0,window.location.href.lastIndexOf ("/")+1)+"img/sample.jpg";  //注意必须是绝对路径
-    //   lineLink = window.location.href;   //同样，必须是绝对路径
-    //   descContent = 'HuGao的山寨flappy bird'; //分享给朋友或朋友圈时的文字简介
-    //   shareTitle = '我在hugao的山寨flappy bird中得了0分，快来挑战我吧！';  //分享title
-    //   appid = ''; //apiID，可留空
-	   
+//   imgUrl = window.location.href.substr(0,window.location.href.lastIndexOf ("/")+1)+"img/sample.jpg";  //注意必须是绝对路径
+//   lineLink = window.location.href;   //同样，必须是绝对路径
+//   descContent = 'HuGao的山寨flappy bird'; //分享给朋友或朋友圈时的文字简介
+//   shareTitle = '我在hugao的山寨flappy bird中得了0分，快来挑战我吧！';  //分享title
+//   appid = ''; //apiID，可留空
 </script>
 </head>
 <body>
@@ -205,7 +237,5 @@
 <img id="tube_down" src="img/tube_down.png"> </img>
 <img id="tube_up" src="img/tube_up.png"> </img>
 <canvas id="canvas" width="288" height="384"></canvas>
-<script type="text/javascript" src="js/Sprite.js"></script>
-<script type="text/javascript" src="js/Main.js"></script>
 </body>
 </html>
