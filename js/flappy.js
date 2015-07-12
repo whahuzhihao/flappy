@@ -81,7 +81,7 @@ Vector = function(x,y)
 {
 	this.x=x;
 	this.y=y;
-}
+};
 Vector.prototype = 
 {
     add : function(v) { this.x = this.x+v.x; this.y = this.y+v.y; },
@@ -95,20 +95,19 @@ Vector.zero = new Vector(0, 0);
  */
 Sprite = function(img,sx,sy,sw,sh,ifCut,x,y,angle)
 {
+	Vector.call(this,x,y);
 	this.img = img;
 	this.sx = sx;
 	this.sy = sy;
 	this.width = sw;
 	this.height = sh;
 	this.ifCut = ifCut;
-	this.x = x;
-	this.y = y;
 	this.angle = angle;
 	this.halfWidth = this.width/2;
 	this.halfHeight = this.height/2;
-	Vector.call(this,x,y);
-}
+};
 Sprite.prototype = new Vector();
+Sprite.prototype.constructor = Sprite;
 Sprite.prototype.draw = function(context)
 {
 	context.save();
@@ -139,7 +138,7 @@ Sprite.prototype.draw = function(context)
 		}
 	}
 	context.restore();
-}
+};
 
 Sprite.prototype.drawWithAngle = function(context,angle,centerx,centery)
 {
@@ -171,7 +170,7 @@ Sprite.prototype.drawWithAngle = function(context,angle,centerx,centery)
 		}
 	}
 	context.restore();
-}
+};
 
 /**
  * ground地面 继承sprite
@@ -179,8 +178,9 @@ Sprite.prototype.drawWithAngle = function(context,angle,centerx,centery)
 Ground =function(img,sx,sy,sw,sh,ifCut,x,y,angle)
 {
 	Sprite.call(this,img,sx,sy,sw,sh,ifCut,x,y,angle);
-}
+};
 Ground.prototype = new Sprite();
+Ground.prototype.constructor = Ground;
 Ground.prototype.update = function(game)
 {
 	if(game.status==WELCOME || game.status==PLAYING)
@@ -191,26 +191,27 @@ Ground.prototype.update = function(game)
 			this.x = 0;
 		}
 	}	
-}
+};
 /**
  * tube管道 继承sprite
  */
 Tube =function(img,sx,sy,sw,sh,ifCut,x,y,angle)
 {
 	Sprite.call(this,img,sx,sy,sw,sh,ifCut,x,y,angle);
-}
+};
 Tube.prototype = new Sprite();
+Tube.prototype.constructor = Tube;
 Tube.prototype.update = function(game)
 {
 	if(game.status==WELCOME || game.status==PLAYING)
 	{
 		this.x -= game.option.groundMovePx;
 	}
-}
+};
 Tube.prototype.randY =function()
 {
 	this.y = TUBE_LOW-(TUBE_LOW-TUBE_HIGH)*Math.random();
-}
+};
 /**
  * bird小鸟 继承sprite 
  */
@@ -220,8 +221,9 @@ Bird =function(img,sx,sy,sw,sh,ifCut,x,y,angle)
 	this.birdIndex = 0;
 	this.birdChangeDirection = 1;
 	this.velocity = new Vector(0,-BIRD_UP_SPEED);
-}
+};
 Bird.prototype = new Sprite();
+Bird.prototype.constructor = Bird;
 Bird.prototype.update = function(game)
 {
 	this.changeBirdIndex(game);
@@ -292,7 +294,7 @@ Bird.prototype.update = function(game)
 		}
 	}
 	
-}
+};
 Bird.prototype.changeBirdIndex = function(game)
 {
 	this.birdIndex += game.option.birdChangeStep;//1秒钟换10次
@@ -305,7 +307,7 @@ Bird.prototype.changeBirdIndex = function(game)
         }
         this.birdIndex = 0;
     }
-}
+};
 Bird.prototype.ifHit = function(spriteArr)
 {
     if(spriteArr.length<2)
@@ -337,7 +339,7 @@ Bird.prototype.ifHit = function(spriteArr)
 		return true;
     }
     return false;
-}
+};
 /**
  * tubequeue水管队列 封装一些tube的操作
  */
@@ -346,14 +348,14 @@ TubeQueue = function()
 	this.tubes = new Array();
 	this.noTubeDist = 0;//已经多长距离没出现管子了
 	this.tubesX = new Array();
-}
+};
 TubeQueue.prototype.draw = function(context)
 {
 	for(var i=0;i<this.tubes.length;i++)
 	{		
 		this.tubes[i].draw(context);		
 	}
-}
+};
 TubeQueue.prototype.update = function(game)
 {
 	if(game.status == WELCOME || game.status == END || game.status == DYING)
@@ -393,7 +395,7 @@ TubeQueue.prototype.update = function(game)
 		}
 	}
 	this.noTubeDist+=game.option.groundMovePx;
-}
+};
 TubeQueue.prototype.addTube =function()
 {
 	var tube1 = new Tube(TubeImg1,0,0,TUBE_WIDTH,TUBE_HEIGHT,false,CANVAS_WIDTH+TUBE_DELAY,0,0);;
@@ -403,7 +405,7 @@ TubeQueue.prototype.addTube =function()
 	this.tubes.push(tube1);
 	this.tubes.push(tube2);
 	this.tubesX.push(tube1.x);
-}
+};
 
 /**
  * 苹果移动设备用audio放音频有问题，这里使用webaudio来兼容一下,另外PC浏览器也支持webaudio 安卓内置的浏览器什么都不支持
@@ -472,7 +474,7 @@ Option = function()
 
 	this.dt = 1/this.FPS;
 	this.acceleration = new Vector(0,GRAVITY);
-}
+};
 Game = function()
 {
 	this.option = new Option();
@@ -482,12 +484,12 @@ Game = function()
 	this.bgSprite = BG;
 	this.groundSprite = GROUND;
 	this.tubeQueue = new TubeQueue();	
-}
+};
 Game.prototype.start = function start()
 {
 	var that = this;
 	var intervalId = setInterval(function(){that.loop(intervalId);},1000/this.option.FPS)
-}
+};
 Game.prototype.loop = function(intervalId)
 {
 	//画背景 不需要clear因为背景直接覆盖了
@@ -579,7 +581,7 @@ Game.prototype.loop = function(intervalId)
 			Sound.playHit();			
 		}
 	}	
-}
+};
 
 function getLoadStep(step)
 {
