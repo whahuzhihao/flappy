@@ -180,7 +180,7 @@
 		e.preventDefault();
 	});
 	
-	if(document.hasOwnProperty("ontouchstart"))
+	if("ontouchend" in document)
 	{
 		window.addEventListener('touchstart',function(e){
 			touch();
